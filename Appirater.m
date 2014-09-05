@@ -320,8 +320,7 @@ static BOOL _alwaysUseMainBundle = NO;
 	// check if the user has done enough significant events
 	NSInteger sigEventCount = [userDefaults integerForKey:kAppiraterSignificantEventCount];
 	
-	if (sigEventCount >= _significantEventsUntilPrompt ||
-		useCount >= _usesUntilPrompt ||
+	if (useCount >= _usesUntilPrompt ||
 		timeSinceFirstLaunch >= timeUntilRate)
 		return YES;
 		
