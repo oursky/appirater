@@ -297,43 +297,43 @@ static BOOL _alwaysUseMainBundle = NO;
 }
 
 - (BOOL)ratingConditionsHaveBeenMet {
-	if (_debug)
-		return YES;
-	
-	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+  if (_debug)
+    return YES;
+    
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
 
-	// has the user previously declined to rate this version of the app?
-	if ([userDefaults boolForKey:kAppiraterDeclinedToRate])
-		return NO;	
-
-	// has the user already rated the app?
-	if ([self userHasRatedCurrentVersion])
-		return NO;
-	
-	NSDate *dateOfFirstLaunch = [NSDate dateWithTimeIntervalSince1970:[userDefaults doubleForKey:kAppiraterFirstUseDate]];
-	NSTimeInterval timeSinceFirstLaunch = [[NSDate date] timeIntervalSinceDate:dateOfFirstLaunch];
-	NSTimeInterval timeUntilRate = 60 * 60 * 24 * _daysUntilPrompt;
-	
-	// check if the app has been used enough
-	NSInteger useCount = [userDefaults integerForKey:kAppiraterUseCount];
-	
-	// check if the user has done enough significant events
-	NSInteger sigEventCount = [userDefaults integerForKey:kAppiraterSignificantEventCount];
-	
-	if (useCount >= _usesUntilPrompt ||
-		timeSinceFirstLaunch >= timeUntilRate)
-		return YES;
-		
-	// if the user wanted to be reminded later, has enough time passed?
-  if ([userDefaults doubleForKey:kAppiraterReminderRequestDate] > 0) {
-      NSDate *reminderRequestDate = [NSDate dateWithTimeIntervalSince1970:[userDefaults doubleForKey:kAppiraterReminderRequestDate]];
-      NSTimeInterval timeSinceReminderRequest = [[NSDate date] timeIntervalSinceDate:reminderRequestDate];
-      NSTimeInterval timeUntilReminder = 60 * 60 * 24 * _timeBeforeReminding;
-      if (timeSinceReminderRequest >= timeUntilReminder)
-          return YES;
-  }
+  // has the user previously declined to rate this version of the app?
+  if ([userDefaults boolForKey:kAppiraterDeclinedToRate])
+    return NO;
+    
+    // has the user already rated the app?
+  if ([self userHasRatedCurrentVersion])
+    return NO;
+    
+    // if the user wanted to be reminded later, has enough time passed?
+    if ([userDefaults doubleForKey:kAppiraterReminderRequestDate] > 0) {
+        NSDate *reminderRequestDate = [NSDate dateWithTimeIntervalSince1970:[userDefaults doubleForKey:kAppiraterReminderRequestDate]];
+        NSTimeInterval timeSinceReminderRequest = [[NSDate date] timeIntervalSinceDate:reminderRequestDate];
+        NSTimeInterval timeUntilReminder = 60 * 60 * 24 * _timeBeforeReminding;
+        if (timeSinceReminderRequest < timeUntilReminder)
+            return NO;
+    }
   
-	return NO;
+  NSDate *dateOfFirstLaunch = [NSDate dateWithTimeIntervalSince1970:[userDefaults doubleForKey:kAppiraterFirstUseDate]];
+  NSTimeInterval timeSinceFirstLaunch = [[NSDate date] timeIntervalSinceDate:dateOfFirstLaunch];
+  NSTimeInterval timeUntilRate = 60 * 60 * 24 * _daysUntilPrompt;
+  
+  // check if the app has been used enough
+  NSInteger useCount = [userDefaults integerForKey:kAppiraterUseCount];
+  
+  // check if the user has done enough significant events
+  NSInteger sigEventCount = [userDefaults integerForKey:kAppiraterSignificantEventCount];
+  
+  if (useCount >= _usesUntilPrompt ||
+    timeSinceFirstLaunch >= timeUntilRate)
+    return YES;
+  
+  return NO;
 }
 
 - (void)incrementUseCount {
