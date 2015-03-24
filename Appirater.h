@@ -85,6 +85,17 @@ extern NSString *const kAppiraterReminderRequestDate;
  */
 #define APPIRATER_RATE_LATER			NSLocalizedStringFromTableInBundle(@"Remind me later", @"AppiraterLocalizable", [Appirater bundle], nil)
 
+#define APPIRATER_ENJOYING_TITLE        NSLocalizedStringFromTableInBundle(@"Enjoying this app?", @"AppiraterLocalizable", [Appirater bundle], nil)
+#define APPIRATER_YES_BUTTON            NSLocalizedStringFromTableInBundle(@"YES", @"AppiraterLocalizable", [Appirater bundle], nil)
+#define APPIRATER_NO_BUTTON             NSLocalizedStringFromTableInBundle(@"NO", @"AppiraterLocalizable", [Appirater bundle], nil)
+
+#define APPIRATER_GIVE_FEEDBACK_TITLE   NSLocalizedStringFromTableInBundle(@"Would you like to give us some feedback?", @"AppiraterLocalizable", [Appirater bundle], nil)
+#define APPIRATER_GIVE_FEEDBACK_BUTTON  NSLocalizedStringFromTableInBundle(@"Ok, sure", @"AppiraterLocalizable", [Appirater bundle], nil)
+
+#define APPIRATER_RATE_ALERT_TAG            40
+#define APPIRATER_ENJOYING_ALERT_TAG		41
+#define APPIRATER_GIVE_FEEDBACK_ALERT_TAG   42
+
 @interface Appirater : NSObject <UIAlertViewDelegate, SKStoreProductViewControllerDelegate> {
 
 	UIAlertView		*ratingAlert;
@@ -255,6 +266,13 @@ extern NSString *const kAppiraterReminderRequestDate;
  */
 + (void) setCustomAlertRateLaterButtonTitle:(NSString *)rateLaterTitle;
 
++ (void) setCustomAlertEnjoyingTitle:(NSString *)title;
++ (void) setCustomAlertEnjoyingYesTitle:(NSString *)yesTitle;
++ (void) setCustomAlertEnjoyingNoTitle:(NSString *)noTitle;
++ (void) setCustomAlertGiveFeedbackTitle:(NSString *)title;
++ (void) setCustomAlertGiveFeedbackConfirmTitle:(NSString *)confirmTitle;
++ (void) setCustomAlertGiveFeedbackCancelTitle:(NSString *)cancelTitle;
+
 /*!
  'YES' will show the Appirater alert everytime. Useful for testing how your message
  looks and making sure the link to your app's review page works.
@@ -282,6 +300,8 @@ extern NSString *const kAppiraterReminderRequestDate;
  in your main bundle.  Default is NO.
  */
 + (void)setAlwaysUseMainBundle:(BOOL)useMainBundle;
+
++ (void)setHideRateLaterButton:(BOOL)hideRateLaterButton;
 
 @end
 

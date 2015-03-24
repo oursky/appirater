@@ -69,13 +69,27 @@ static BOOL _usesAnimation = TRUE;
 static UIStatusBarStyle _statusBarStyle;
 static BOOL _modalOpen = false;
 static BOOL _alwaysUseMainBundle = NO;
+static BOOL _enableFeedbackFlow = YES;
+static BOOL _hideRateLaterButton = NO;
 
 @interface Appirater ()
+
+@property (nonatomic, assign) BOOL showRateLaterButton;
+
 @property (nonatomic, copy) NSString *alertTitle;
 @property (nonatomic, copy) NSString *alertMessage;
 @property (nonatomic, copy) NSString *alertCancelTitle;
 @property (nonatomic, copy) NSString *alertRateTitle;
 @property (nonatomic, copy) NSString *alertRateLaterTitle;
+
+@property (nonatomic, copy) NSString *alertEnjoyingTitle;
+@property (nonatomic, copy) NSString *alertEnjoyingNoTitle;
+@property (nonatomic, copy) NSString *alertEnjoyingYesTitle;
+
+@property (nonatomic, copy) NSString *alertGiveFeedbackTitle;
+@property (nonatomic, copy) NSString *alertGiveFeedbackCancelTitle;
+@property (nonatomic, copy) NSString *alertGiveFeedbackConfirmTitle;
+
 - (BOOL)connectedToNetwork;
 + (Appirater*)sharedInstance;
 - (void)showPromptWithChecks:(BOOL)withChecks
@@ -136,6 +150,36 @@ static BOOL _alwaysUseMainBundle = NO;
     [self sharedInstance].alertRateLaterTitle = rateLaterTitle;
 }
 
++ (void) setCustomAlertEnjoyingTitle:(NSString *)title
+{
+    [self sharedInstance].alertEnjoyingTitle = title;
+}
+
++ (void) setCustomAlertEnjoyingYesTitle:(NSString *)yesTitle
+{
+    [self sharedInstance].alertEnjoyingYesTitle = yesTitle;
+}
+
++ (void) setCustomAlertEnjoyingNoTitle:(NSString *)noTitle
+{
+    [self sharedInstance].alertEnjoyingNoTitle = noTitle;
+}
+
++ (void) setCustomAlertGiveFeedbackTitle:(NSString *)title
+{
+    [self sharedInstance].alertGiveFeedbackTitle = title;
+}
+
++ (void) setCustomAlertGiveFeedbackConfirmTitle:(NSString *)confirmTitle
+{
+    [self sharedInstance].alertGiveFeedbackConfirmTitle = confirmTitle;
+}
+
++ (void) setCustomAlertGiveFeedbackCancelTitle:(NSString *)cancelTitle
+{
+    [self sharedInstance].alertGiveFeedbackCancelTitle = cancelTitle;
+}
+
 + (void) setDebug:(BOOL)debug {
     _debug = debug;
 }
@@ -156,6 +200,9 @@ static BOOL _alwaysUseMainBundle = NO;
 }
 + (void)setAlwaysUseMainBundle:(BOOL)alwaysUseMainBundle {
     _alwaysUseMainBundle = alwaysUseMainBundle;
+}
++ (void)setHideRateLaterButton:(BOOL)hideRateLaterButton {
+    _hideRateLaterButton = hideRateLaterButton;
 }
 
 + (NSBundle *)bundle
@@ -201,6 +248,37 @@ static BOOL _alwaysUseMainBundle = NO;
 - (NSString *)alertRateLaterTitle
 {
     return _alertRateLaterTitle ? _alertRateLaterTitle : APPIRATER_RATE_LATER;
+}
+
+- (NSString*)alertEnjoyingTitle
+{
+    return _alertEnjoyingTitle ? _alertEnjoyingTitle : APPIRATER_ENJOYING_TITLE;
+}
+
+- (NSString*)alertEnjoyingNoTitle
+{
+    return _alertEnjoyingNoTitle ? _alertEnjoyingNoTitle : APPIRATER_NO_BUTTON;
+}
+
+- (NSString*)alertEnjoyingYesTitle
+{
+    return _alertEnjoyingYesTitle ? _alertEnjoyingYesTitle : APPIRATER_YES_BUTTON;
+}
+
+- (NSString*)alertGiveFeedbackTitle
+{
+    return _alertGiveFeedbackTitle ? _alertGiveFeedbackTitle : APPIRATER_GIVE_FEEDBACK_TITLE;
+}
+
+
+- (NSString*)alertGiveFeedbackCancelTitle
+{
+    return _alertGiveFeedbackCancelTitle ? _alertGiveFeedbackCancelTitle : APPIRATER_CANCEL_BUTTON;
+}
+
+- (NSString*)alertGiveFeedbackConfirmTitle
+{
+    return _alertGiveFeedbackConfirmTitle ? _alertGiveFeedbackConfirmTitle : APPIRATER_GIVE_FEEDBACK_BUTTON;
 }
 
 - (void)dealloc {
@@ -269,7 +347,7 @@ static BOOL _alwaysUseMainBundle = NO;
 
 - (void)showRatingAlert:(BOOL)displayRateLaterButton {
   UIAlertView *alertView = nil;
-  if (displayRateLaterButton) {
+  if (displayRateLaterButton && !_hideRateLaterButton) {
   	alertView = [[UIAlertView alloc] initWithTitle:self.alertTitle
                                            message:self.alertMessage
                                           delegate:self
@@ -282,7 +360,8 @@ static BOOL _alwaysUseMainBundle = NO;
                                  cancelButtonTitle:self.alertCancelTitle
                                  otherButtonTitles:self.alertRateTitle, nil];
   }
-
+    
+    alertView.tag = APPIRATER_RATE_ALERT_TAG;
 	self.ratingAlert = alertView;
     [alertView show];
 
@@ -295,6 +374,52 @@ static BOOL _alwaysUseMainBundle = NO;
 - (void)showRatingAlert
 {
   [self showRatingAlert:true];
+}
+
+- (void)showEnjoyingAlert
+{
+    UIAlertView *alertView = nil;
+    alertView = [[UIAlertView alloc] initWithTitle:self.alertEnjoyingTitle
+                                           message:nil
+                                          delegate:self
+                                 cancelButtonTitle:self.alertEnjoyingNoTitle
+                                 otherButtonTitles:self.alertEnjoyingYesTitle, nil];
+    alertView.tag = APPIRATER_ENJOYING_ALERT_TAG;
+    self.ratingAlert = alertView;
+    [alertView show];
+}
+
+- (void)showGiveFeedbackAlert
+{
+    UIAlertView *alertView = nil;
+    alertView = [[UIAlertView alloc] initWithTitle:self.alertGiveFeedbackTitle
+                                           message:nil
+                                          delegate:self
+                                 cancelButtonTitle:self.alertGiveFeedbackCancelTitle
+                                 otherButtonTitles:self.alertGiveFeedbackConfirmTitle, nil];
+    alertView.tag = APPIRATER_GIVE_FEEDBACK_ALERT_TAG;
+    self.ratingAlert = alertView;
+    [alertView show];
+}
+
+- (void)startFeedbackFlow:(BOOL)displayRateLaterButton
+{
+    _showRateLaterButton = displayRateLaterButton;
+    [self showEnjoyingAlert];
+}
+
+- (void)startRatingFlow:(BOOL)displayRateLaterButton
+{
+    if (_enableFeedbackFlow) {
+        [self startFeedbackFlow:displayRateLaterButton];
+    } else {
+        [self showRatingAlert:displayRateLaterButton];
+    }
+}
+
+- (void)startRatingFlow
+{
+    [self startRatingFlow:true];
 }
 
 - (BOOL)ratingConditionsHaveBeenMet {
@@ -442,7 +567,7 @@ static BOOL _alwaysUseMainBundle = NO;
 	{
         dispatch_async(dispatch_get_main_queue(),
                        ^{
-                           [self showRatingAlert];
+                           [self startRatingFlow];
                        });
 	}
 }
@@ -456,7 +581,7 @@ static BOOL _alwaysUseMainBundle = NO;
 	{
         dispatch_async(dispatch_get_main_queue(),
                        ^{
-                           [self showRatingAlert];
+                           [self startRatingFlow];
                        });
 	}
 }
@@ -537,7 +662,7 @@ static BOOL _alwaysUseMainBundle = NO;
               && ![self userHasRatedCurrentVersion]);
   } 
   if (showPrompt) {
-    [self showRatingAlert:displayRateLaterButton];
+    [self startRatingFlow:displayRateLaterButton];
   }
 }
 
@@ -629,6 +754,15 @@ static BOOL _alwaysUseMainBundle = NO;
 }
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
+    
+    if (alertView.tag == APPIRATER_ENJOYING_ALERT_TAG) {
+        [self handleEnjoyingAlertView:alertView didDismissWithButtonIndex:buttonIndex];
+        return;
+    } else if (alertView.tag == APPIRATER_GIVE_FEEDBACK_ALERT_TAG) {
+        [self handleGiveFeedbackAlertView:alertView didDismissWithButtonIndex:buttonIndex];
+        return;
+    }
+    
 	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     
     id <AppiraterDelegate> delegate = _delegate;
@@ -664,6 +798,48 @@ static BOOL _alwaysUseMainBundle = NO;
 		default:
 			break;
 	}
+}
+
+- (void)handleEnjoyingAlertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    
+    switch (buttonIndex) {
+        case 0:
+        {
+            // user don't enjoy the app
+            [userDefaults setBool:YES forKey:kAppiraterDeclinedToRate];
+            [userDefaults synchronize];
+            [self showGiveFeedbackAlert];
+            break;
+        }
+        case 1:
+        {
+            [self showRatingAlert:_showRateLaterButton];
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+- (void)handleGiveFeedbackAlertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
+    id <AppiraterDelegate> delegate = _delegate;
+    switch (buttonIndex) {
+        case 0:
+        {
+            break;
+        }
+        case 1:
+        {
+            if(delegate&& [delegate respondsToSelector:@selector(appiraterDidOptToGiveFeedback:)]){
+                [delegate appiraterDidOptToGiveFeedback:self];
+            }
+            break;
+        }
+        default:
+            break;
+    }
+    
 }
 
 //Delegate call from the StoreKit view.
